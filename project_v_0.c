@@ -11,12 +11,9 @@
 
 int find_index (char *word,char find) ;
 void removeSpaces (char*address);
-char *strremove(char *str,const char *sub) ;
+char *strremove(char *str,char *sub) ;
 void *findname(const char *path,char *final) ;
 void *raw_address(char *path,char *result);
-
-
-
 
 char input[150];
 
@@ -289,8 +286,83 @@ void grep()
 {
 }
 
-void comprator()
-{
+void comprator(char *path1,char *path2) {
+    FILE *file1;
+    FILE *file2;
+    file1 = fopen(path1 , "r");
+    file2 = fopen(path2 ,"r");
+    if (file1==NULL||file2==NULL) {
+        printf("Error while reading files\n");
+        return ;
+    }
+    bool reading_status = true;
+    int current_line=1;
+    int show_line=1;
+    char buffer1[MAX];
+    char buffer2[MAX];
+    int v1=1,v2=1,end =1,co = 0;
+    char first;
+    char second;
+    char temp[MAX][MAX];
+    do {
+        fgets(buffer1,MAX,file1);
+        fgets(buffer2,MAX,file2);
+        if (feof(file1)) {
+            v1 = 0;
+            reading_status = false ;
+            if (feof(file2)) end = 0;
+            else {
+                strcpy(temp[co],buffer2) ;
+                co ++ ;
+            }
+        }
+        if (feof(file2)) {
+            v2=0;
+            reading_status = false ;
+            if (feof(file1)) end =0;
+            else {
+                strcpy(temp[co],buffer1);
+                co ++;
+            }
+        }
+        if (strcmp(buffer1,buffer2)!=0) {
+            show_line = current_line;
+            strcpy(first,buffer1);
+            strcpy(second,buffer2);
+        }
+        current_line ++;
+    } while(reading_status);
+    printf("==================== #%d ====================\n" ,show_line);
+    printf("file1 is : %s\n" ,first);
+    printf("file2 is : %s\n" ,second);
+    if (end = 1) {
+        printf(">>>>>>>>>>>>>>>>>>>> #%d >>>>>>>>>>>>>>>>>>>>\n" ,show_line+1);
+        for (int i=0;i<current_line;i++) {
+            printf("%s\n" ,temp[i]);
+        }
+    }
+    fclose(file1);
+    fclose(file2);
+
+    reading_status = true ;
+    file1 = fopen(path1 , "r");
+    file2 = fopen(path2 ,"r");
+    current_line = 1;
+    do {
+        if (v1!=0) {
+            fgets(buffer1,MAX,file1);
+            if (current_line>show_line) {
+                //print the file 1 after ending file 2
+
+            }
+        }
+        else if (v2!=0) {
+
+        }
+        current_line ++;
+    }   while (reading_status);
+    fclose(file1);
+    fclose(file2);
 }
 
 void dr_tree()
@@ -308,7 +380,7 @@ void closingpair(char *address) {
     file = fopen(address, "r") ;
     if (file==NULL) {
         printf("can't open the file\n");
-        return 1;
+        return;
     }
     char nameOFfile[MAX];
     char temp_a[MAX];
@@ -324,7 +396,7 @@ void closingpair(char *address) {
     temp = fopen(secondpath , "w");
     if (temp==NULL) {
         printf("Error");
-        return 1;
+        return;
     }
     char a;
     char pre = '\0';
@@ -333,6 +405,24 @@ void closingpair(char *address) {
         a = fgetc(file);
         if (a=='{') {
             numofbraces ++ ;
+            if (pre==' ') {
+                fputc(a,temp);
+                fputc('\n',temp);
+                for (int a=0;a<4*numofbraces;a++) {
+                    fputc(' ' ,temp);
+                }
+                pre = a;            
+            }
+            else {
+                if (pre!='\n')
+                    fputc(' ',temp);
+                fputc(a,temp);
+                fputc('\n',temp);
+                for (int a=0;a<4*numofbraces;a++) {
+                    fputc(' ' ,temp);
+                }
+                pre = a;
+            }
             if (pre=='\n') {
                 fputc('\n',temp);
                 for (int a=0;a<4*numofbraces;a++) {
@@ -342,14 +432,9 @@ void closingpair(char *address) {
             if (pre=='}') {
                 fputc('\n',temp);
             }
-            fputc(a,temp);
-            fputc('\n',temp);
-            for (int a=0;a<4*numofbraces;a++) {
-                fputc(' ' ,temp);
-            }
-            pre = a;
         }
         else if (a=='}') {
+            if (pre!='\n') {
                 fputc('\n',temp);
                 for (int a=0;a<4*numofbraces;a++) {
                     fputc(' ' ,temp);
@@ -357,6 +442,16 @@ void closingpair(char *address) {
                 fputc('}',temp);
                 pre = a;          
                 numofbraces--;
+            }
+            if (fgetc(file)!='\n') {
+                fputc('\n',temp);
+                for (int a=0;a<4*numofbraces;a++) {
+                    fputc(' ' ,temp);
+                }  
+                fputc('}',temp);
+                pre = a;          
+                numofbraces--;
+            }
         }
         else if (a==' ') {
             if (pre =='{') {
@@ -369,11 +464,7 @@ void closingpair(char *address) {
                 pre = a;
             }
         }
-        //else if (a=='\n') {
-        //    
-        //}
         else {
-            //a = fgetc(file);
             fputc(a,temp);
             pre = a;
         }
@@ -381,7 +472,6 @@ void closingpair(char *address) {
             break;
         }
     }   while (a!=EOF);
-
     fclose(file);
     fclose(temp);
     remove(temp_a);
@@ -424,7 +514,7 @@ void removeSpaces (char*address) {
     }
 }
 
-char *strremove(char *str, const char *sub) {
+char *strremove(char *str,char *sub) {
     size_t len = strlen(sub);
     if (len > 0) {
         char *p = str;
@@ -477,7 +567,6 @@ void *raw_address(char *path,char *result) {
                 break;
             }
         }
-    }
-    
+    }   
     strcpy(result,test);
 }
