@@ -3,13 +3,23 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <stdlib.h>
+#include <ctype.h>
+#include <stdbool.h>
+
+
+#define MAX 1000
 
 int find_index (char *word,char find) ;
 void removeSpaces (char*address);
 char *strremove(char *str,const char *sub) ;
+void *findname(const char *path,char *final) ;
+void *raw_address(char *path,char *result);
+
+
 
 
 char input[150];
+
 
 void inputs(char input[])
 {
@@ -24,7 +34,7 @@ void command_search(char input[])
     char main_command[] = "--file";
     if (strstr(input, main_command))
     {
-        // createfile 
+                                                        // createfile 
         if (strstr(input, "createfile --file"))
         {
             char *address;
@@ -39,7 +49,7 @@ void command_search(char input[])
         }
         else if (strstr(input, "insertstr --file"))
         {
-            printf("inja bayd text to file nvhste bshe!\n");
+            input = strremove(input,"insertstr --file");
             insert(input);
         }
         else if (strstr(input, "cat --file"))
@@ -104,8 +114,10 @@ void command_search(char input[])
     }
     else if (strstr(input, "auto-indent"))
     {
-        printf("khob inja bayd auto indent konim!\n");
-        sdf
+        //printf("khob inja bayd auto indent konim!\n");
+        strremove(input,"auto-indent");
+        strremove(input,"/root/");
+        closingpair(input);
     }
     else
     {
@@ -113,7 +125,7 @@ void command_search(char input[])
     }
 }
 
-void create_file(const char address[]) {
+void create_file(const char *address) {
     FILE *fp;
     address = strremove(address,"/root/") ;
     printf("your address is : %s\n" ,address);
@@ -121,7 +133,7 @@ void create_file(const char address[]) {
     for (int i=0;i<strlen(address);i++) {
         test[i] = address[i] ;
         if (test[i]=='/') {
-            printf("%s\n" ,test);
+            //printf("%s\n" ,test);
             if (mkdir(test)==-1) {
                 perror("Error") ;
             }
@@ -138,10 +150,99 @@ void create_file(const char address[]) {
     }
 }
 
-void insert(char *address) {
-    FILE *pf;
-    
+void insert(const char *address) {
+    FILE *file;
+    FILE *temp;
+    char temp_f[MAX];
+    char buffer[MAX];
+    char path[MAX];
+    char secondpath[MAX];
+    char text[MAX];
+    int line=1;
+    int pos=0;
+    char *diraddress;
+    diraddress = strtok(address," ");
+    int index =1 ;
+    while (diraddress!=NULL) {
+        if (index==1) {
+            //address
+            strcpy(path,diraddress);
+           /// printf("the address is %s\n" ,path);
+        }
+        if (index==3) {
+            //text
+            strcpy(text,diraddress);
+            //printf("the text is : %s\n" ,text);
+        }
+        if(index==5) {
+            //position
+            int l;
+            l = strtok(diraddress,":");
+            l = atoi(l);
+            line = l;
+            l = strtok(NULL,":");
+            l = atoi(l);
+            pos = l;
+            //printf("line and char are :%d&%d" ,line,pos);
+        }
+        diraddress = strtok(NULL," ");
+        index ++;
+    }
+    strremove(path,"/root/");
+    strcpy(temp_f,"temp_");
+    strcat(temp_f,file);
+    file = fopen(path ,"r");
+    if (file==NULL) {
+        printf("the selected file doesn't exist");
+        return 1;
+    }
+    int numofslashes = 0;
+    for (int a=0;a<strlen(path);a++) {
+        if (path[a]=='/') {
+            numofslashes++;
+        }
+    }
+    int counter = 0;
+    for (int i=0;i<strlen(path);i++) {
+        secondpath[i] = path[i] ;
+        if (path[i]=='/') {
+            counter ++;
+        }
+        if (path[i]=='/'&&counter==numofslashes) {
+            break;
+        } 
+    }
+    strcat(secondpath,"temp.txt");
+    printf("second temp is : %s\n" ,secondpath);
+    temp = fopen(secondpath , "a+");
+    bool keep_reading = true ;
+    int current_l = 1;
+    do {
+        printf("the buffer is : {%s}{%s}\n" ,buffer,current_l);
+        fgets(buffer,MAX,file) ;
+        int size=strlen(buffer);
+        if (feof(file)) {
+            printf("mosavi shod k %d" ,current_l);
+        if (current_l==line) {
+            fputs(text,temp);
+            keep_reading = false;
+        }else{
+            fputs("\n" , temp) ; 
+        }
+        }else{
+            if(current_l == line){
+                fputs(text,temp);
+            }else{
 
+                fputs(buffer , temp) ;  
+            }
+        }
+    current_l ++ ; 
+    }   while(keep_reading);
+    fclose(file);
+    fclose(temp);
+    remove(file);
+    rename(temp,file);
 }
 
 void read_file(const char *address)
@@ -165,6 +266,7 @@ void read_file(const char *address)
 
 void delete()
 {
+
 }
 
 void copy()
@@ -201,11 +303,91 @@ void pipe()
 
 void closingpair(char *address) {
     FILE *file;
-    file = fopen(address, "r") ;
+    FILE *temp;
     strremove(address," ");
-    strremove(address,"\n");
-    wedf
+    file = fopen(address, "r") ;
+    if (file==NULL) {
+        printf("can't open the file\n");
+        return 1;
+    }
+    char nameOFfile[MAX];
+    char temp_a[MAX];
+    strcpy(temp_a,address);
+    findname(address,nameOFfile);
+    char *secondpath = (char*) malloc(sizeof(char) * MAX);
+    raw_address(temp_a,secondpath);
+    strremove(secondpath," ");
+    strcat(secondpath,"temp_");
+    strcat(secondpath,nameOFfile) ;
+    //printf("\t%s\n" ,secondpath);
+    //printf("\t%s" ,temp_a);
+    temp = fopen(secondpath , "w");
+    if (temp==NULL) {
+        printf("Error");
+        return 1;
+    }
+    char a;
+    char pre = '\0';
+    int numofbraces = 0;
+    do {
+        a = fgetc(file);
+        if (a=='{') {
+            numofbraces ++ ;
+            if (pre=='\n') {
+                fputc('\n',temp);
+                for (int a=0;a<4*numofbraces;a++) {
+                    fputc(' ' ,temp);
+                }
+            }
+            if (pre=='}') {
+                fputc('\n',temp);
+            }
+            fputc(a,temp);
+            fputc('\n',temp);
+            for (int a=0;a<4*numofbraces;a++) {
+                fputc(' ' ,temp);
+            }
+            pre = a;
+        }
+        else if (a=='}') {
+                fputc('\n',temp);
+                for (int a=0;a<4*numofbraces;a++) {
+                    fputc(' ' ,temp);
+                }  
+                fputc('}',temp);
+                pre = a;          
+                numofbraces--;
+        }
+        else if (a==' ') {
+            if (pre =='{') {
+            }
+            else if (pre==' ') {
+
+            }
+            else {
+                fputc(a ,temp);
+                pre = a;
+            }
+        }
+        //else if (a=='\n') {
+        //    
+        //}
+        else {
+            //a = fgetc(file);
+            fputc(a,temp);
+            pre = a;
+        }
+        if (a==EOF) {
+            break;
+        }
+    }   while (a!=EOF);
+
+    fclose(file);
+    fclose(temp);
+    remove(temp_a);
+    rename(secondpath,temp_a);    
 }
+
 
 int main()
 {
@@ -251,4 +433,51 @@ char *strremove(char *str, const char *sub) {
         }
     }
     return str;
+}
+
+void *findname(const char *path,char *final) {
+    int numofslashes =0;
+    char *name;
+    char last[MAX][MAX];
+    int size [MAX];
+    name = strtok(path,"/");
+    int co = 0;
+    while (name!=NULL) 
+    {
+        size[co] = strlen(name);
+        strcpy(last[co],name);
+        //printf("%s %d" ,last[co],size[co]); 
+        name = strtok(NULL,"/");
+        co++;
+    }
+    for (int i=0;;i++) {
+        if (i==(co-1)) {
+            last[i][size[i]] = '\0';
+            strcpy(final,last[i]);
+            break;
+        }
+    }
+}
+
+void *raw_address(char *path,char *result) {
+    int numberofslashes = 0;
+    char test[MAX];
+    int counter=0;
+    for (int a=0;a<strlen(path);a++) {
+        if (path[a]=='/') {
+            counter ++;
+        }
+    }
+    for (int i=0;i<strlen(path);i++) {
+        test[i] = path[i] ;
+        if (test[i]=='/') {
+            numberofslashes ++;
+            if (counter==numberofslashes) {
+                test[i+1] = '\0';
+                break;
+            }
+        }
+    }
+    
+    strcpy(result,test);
 }
