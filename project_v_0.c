@@ -5,10 +5,12 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <dirent.h>
 
 
 #define MAX 1000
 
+char clipboard[MAX];
 int find_index (char *word,char find) ;
 void removeSpaces (char*address);
 char *strremove(char *str,char *sub) ;
@@ -17,6 +19,9 @@ void *raw_address(char *path,char *result);
 void create_file(const char *address);
 void insert(const char *address,const char *text,int line,int position);
 void read_file(const char *address);
+void treeshow(int depth) ;
+void listfiles(const char* dirname) ;
+
 
 
 
@@ -25,7 +30,6 @@ char input[150];
 
 void inputs(char input[])
 {
-    printf("Enter your command : ");
     fgets(input, 150, stdin);
     input[strlen(input) - 1] = '\0';
 }
@@ -97,7 +101,7 @@ void command_search(char input[])
                     diraddress = strtok(NULL," ");
                     index ++;
                 }
-                //insert(path,text,line,pos);
+                insert(path,text,line,pos);
             }
         }
         //cat
@@ -125,48 +129,47 @@ void command_search(char input[])
             strremove(input,"removestr --file ");
             printf("%s\n" ,input);
             char path[MAX];
+            char position[20];
+            char *attribute;    
             int line,pos,size;
             if (*input+0=='"') {
                 printf("duble quotation dare\n") ;
             }
             else {
                 char *diraddress;
-                char *attribute;
                 diraddress = strtok(input," ");
                 int index =1 ;
                 while (diraddress!=NULL) {
                     if (index==1) {
-                        //address
-                        strcpy(path,diraddress);
-                        printf("address is :%s\n",path);
+                    //address
+                    strcpy(path,diraddress);
                     }
                     if(index==3) {
-                        //position
-                        int l;
-                        l = strtok(diraddress,":");
-                        l = atoi(l);
-                        line = l;
-                        l = strtok(NULL,":");
-                        l = atoi(l);
-                        pos = l;
-                        printf("posititon is :%d,%d\n" ,line,pos);
+                    //position
+                        //int l;
+                        //l = strtok(diraddress,":");
+                        //l = atoi(l);
+                        //line = l;
+                        //l = strtok(NULL,":");
+                        //l = atoi(l);
+                        //pos = l;
+                        strcpy(position,diraddress);
                     }
                     if (index==5) {
                         //size
                         size = atoi(diraddress);
-                        printf("size is :%d\n" ,size);
                     }
                     if (index==6) {
                         //attribute
                         strcpy(attribute,diraddress);
-                        printf("the attribute is :%s\n" ,attribute); 
                     }
-                    diraddress = strtok(NULL," ");
-                    printf("(%s %d)\n" ,diraddress,index);
                     index ++;
+                    diraddress = strtok(NULL," ");
                 }
+                removestr(path,position,size,attribute);
             }
         }
+        //copy
         else if (strstr(input, "copystr --file"))
         {
             printf("inja bayd copy konm!\n");
@@ -208,9 +211,14 @@ void command_search(char input[])
     {
         printf("eee compare ham peyda shod!\n");
     }
-    else if (strstr(input, "auto-indent"))
+    else if (strstr(input,"tree")) {
+        strremove(input,"tree");
+        int a;
+        a = atoi(input);
+        treeshow(a);
+    }
+    else if (strstr(input, "auto-indent"))  
     {
-        //printf("khob inja bayd auto indent konim!\n");
         strremove(input,"auto-indent");
         strremove(input,"/root/");
         closingpair(input);
@@ -256,7 +264,6 @@ void create_file(const char *address) {
 
 void insert(const char *address,const char *text,int line,int position) {
     address = strremove(address,"/root/") ;
-    //printf("address:%s" ,address);
     FILE *file;
     FILE *temp;
     file = fopen(address ,"r");
@@ -264,6 +271,7 @@ void insert(const char *address,const char *text,int line,int position) {
         printf("the selected file doesn't exist");
         return;
     }
+    char c;
     char nameOFfile[MAX];
     char temp_a[MAX];
     strcpy(temp_a,address);
@@ -280,19 +288,42 @@ void insert(const char *address,const char *text,int line,int position) {
     bool keep_reading = true ;
     int current_l = 1;
     do {
-        //printf("the buffer is : {%s}{%d}\n" ,buffer,current_l);
         fgets(buffer,MAX,file) ;
+        buffer[strlen(buffer)-1] = '\0';
         int size=strlen(buffer);
         if (feof(file)) {    
             if (current_l==line) {
-                fputs(text,temp);
+                int i=0;
+                do {
+                    c = buffer[i];
+                    printf("%c" ,c);
+                    if (i==position) {
+                        fputs(text,temp);   
+                    }
+                    else if (buffer==' ') {
+                        fputc(' ',temp);
+                    }
+                    else fputc(c,temp);
+                    i++;
+                } while(c!='\0');
                 keep_reading = false;
             }else{
                 fputs("\n" , temp) ; 
             }
         }else{
             if(current_l == line){
-                fputs(text,temp);
+                int i = 0 ;
+                do {
+                    c = buffer[i];
+                    if (i==position) {
+                        fputs(text,temp);   
+                    }
+                    else if (buffer==' ') {
+                        fputc(' ',temp);
+                    }
+                    else fputc(c,temp);
+                    i++;
+                } while(c!='\0');
                 keep_reading = false;
             }else{
                 fputs(buffer , temp) ;  
@@ -323,16 +354,72 @@ void read_file(const char *address)
     fclose(readf);
 }
 
-void delete()
+void removestr(const char *address,char *position,int size,char*attribute)
 {
-
+    int l;
+    l = strtok(position,":");
+    l = atoi(l);
+    int line = l;
+    l = strtok(NULL,":");
+    l = atoi(l);
+    int pos = l;
+    ////////////////////////////
+    FILE *file;
+    FILE *temp;
+    strremove(address,"/root/");
+    file = fopen(address , "r");
+    if (file==NULL) {
+        printf("the selected file doesn't exist");
+        return;
+    }
+    char nameOFfile[MAX];
+    char temp_a[MAX];
+    strcpy(temp_a,address);
+    findname(address,nameOFfile);
+    char *secondpath = (char*) malloc(sizeof(char) * MAX);
+    raw_address(temp_a,secondpath);
+    strremove(secondpath," ");
+    strcat(secondpath,"temp_");
+    strcat(secondpath,nameOFfile) ;
+    char temp_f[MAX];
+    char buffer[MAX];
+    char *diraddress;
+    temp = fopen(secondpath , "a+");
+    bool keep_reading = true ;
+    int current_l = 1;
+    do {
+        //printf("the buffer is : {%s}{%d}\n" ,buffer,current_l);
+        fgets(buffer,MAX,file) ;
+        buffer[strlen(buffer)-1] = '\0';
+        int size=strlen(buffer);
+        if (feof(file)) {
+            keep_reading = false;    
+            if (current_l==line) {
+                fputs("\n",temp);
+            }else{
+                fputs("\n" , temp) ; 
+            }
+        }else{
+            if(current_l == line){
+                fputs("\n",temp);
+            }else{
+                fputs(buffer , temp) ;
+                fputs("\n",temp) ; 
+            }
+        }
+        current_l ++ ; 
+    }   while(keep_reading);
+    fclose(file);
+    fclose(temp);
+    remove(temp_a);
+    rename(secondpath,temp_a);
 }
 
-void copy()
+void copystr()
 {
 }
 
-void paste()
+void pastestr()
 {
 }
 
@@ -426,8 +513,72 @@ void comprator(char *path1,char *path2) {
     fclose(file2);
 }
 
-void dr_tree()
+void listfiles(const char* dirname) {
+    DIR *dir = opendir(dirname);
+    if (dir==NULL) {
+        printf("Something wrong!\n");
+        return;
+    }
+    struct dirent* entity;
+    entity = readdir(dir);
+    while (entity!=NULL) {
+    if (*entity->d_name=='.') {
+    }
+    else 
+        printf("---%s\n" ,entity->d_name);
+    entity = readdir(dir);
+    }  
+}
+
+void treeshow(int depth)
 {
+    if (depth<-1) {
+        printf("Invalid depth!\n");
+        return ;
+    }
+    DIR *dir = opendir(".");
+    if (dir==NULL) {
+        printf("Something wrong!\n");
+        return;
+    }
+    struct dirent* entity;
+    if (depth==2) {
+        entity = readdir(dir);
+        while (entity!=NULL) {
+        if (*entity->d_name=='.') {
+        }
+        else if (entity->d_type==DT_DIR&&*entity->d_name!='.') {
+            printf("%s\n" ,entity->d_name);
+            printf("|\n");
+            char path[100] = { 0 };
+            strcat(path, ".");
+            strcat(path, "/");
+            strcat(path, entity->d_name);
+            //printf("\t%s\n" ,path);
+            listfiles(path);
+        }
+        else 
+            printf("%s\n" ,entity->d_name);
+        entity = readdir(dir);
+        }
+    }
+    else if(depth==1) {
+        entity = readdir(dir);
+        while (entity!=NULL) {
+        if (*entity->d_name=='.') {
+        }
+        else 
+            printf("%s\n" ,entity->d_name);
+        entity = readdir(dir);
+        }
+    }
+    else if(depth==0) {
+        printf("root\n");
+    }
+    else if (depth==-1) {
+        printf("emtiazi stuff!\n");
+    }
+    closedir(dir);
 }
 
 void pipe()
@@ -541,9 +692,11 @@ void closingpair(char *address) {
 
 
 int main()
-{
-    inputs(input);
-    command_search(input);
+{   
+    //while (true) {
+        inputs(input);
+        command_search(input);
+    //}
     return 0;
 }
 
