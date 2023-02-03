@@ -36,8 +36,42 @@ void inputs(char input[])
 
 void command_search(char input[])
 {
-    char main_command[] = "--file";
-    if (strstr(input, main_command))
+    if (strstr(input,"grep")) {
+        strremove(input,"grep ");
+        printf("%s\n" ,input);
+        char option[20];
+        char text[MAX];
+        char projects[MAX];
+        if (*input+0=='-') {
+            //with option
+            char *temp;
+            temp = strtok(input," ");
+            int index = 0;
+            while (index!=3) {
+                if (index==0) {
+                    //option
+                    strcpy(option,temp);
+                }
+                else if (index==2) {
+                    //text
+                    strcpy(text,temp);
+                }
+                index ++;
+                temp = strtok(NULL," ");
+            }
+            strcpy(projects,temp);
+            while (temp!=NULL)
+            {
+                temp = strtok(NULL," ");
+                strcat(projects,temp);
+            }
+            printf("%s\n%s\n%s\n" ,option,text,projects);
+        }
+//        else {
+//
+//        }
+    }
+    else if (strstr(input,"--file"))
     {
         // createfile 
         if (strstr(input, "createfile --file"))
@@ -133,7 +167,30 @@ void command_search(char input[])
             char *attribute;    
             int line,pos,size;
             if (*input+0=='"') {
-                printf("duble quotation dare\n") ;
+                char *temp;
+                temp = strtok(input,"\"");
+                strcpy(path,temp);
+                temp = strtok(NULL,"\"");
+                int index =0;
+                char *tempx;
+                tempx = strtok(temp," ");
+                while (tempx!=NULL) {
+                    if (index==1) {
+                        //position
+                        strcpy(position,tempx);
+                    }
+                    else if (index==3){
+                        //size
+                        size = atoi(tempx);
+                    }
+                    else if (index==4){
+                        //attribute
+                        strcpy(attribute,tempx);
+                    }
+                    tempx = strtok(NULL," ");
+                    index ++;
+                }
+                removestr(path,position,size,attribute);
             }
             else {
                 char *diraddress;
@@ -146,13 +203,6 @@ void command_search(char input[])
                     }
                     if(index==3) {
                     //position
-                        //int l;
-                        //l = strtok(diraddress,":");
-                        //l = atoi(l);
-                        //line = l;
-                        //l = strtok(NULL,":");
-                        //l = atoi(l);
-                        //pos = l;
                         strcpy(position,diraddress);
                     }
                     if (index==5) {
@@ -172,12 +222,138 @@ void command_search(char input[])
         //copy
         else if (strstr(input, "copystr --file"))
         {
-            printf("inja bayd copy konm!\n");
+            strremove(input,"copystr --file ");
+            //printf("%s\n" ,input);
+            char path[MAX];
+            char position[20];
+            char attribute[20];    
+            int line,pos,size;
+            if (*input+0=='"') {
+                char *temp;
+                temp = strtok(input,"\"");
+                strcpy(path,temp);
+                temp = strtok(NULL,"\"");
+                int index =0;
+                char *tempx;
+                tempx = strtok(temp," ");
+                while (tempx!=NULL) {
+                    if (index==1) {
+                        //position
+                        strcpy(position,tempx);
+                    }
+                    else if (index==3){
+                        //size
+                        size = atoi(tempx);
+                    }
+                    else if (index==4){
+                        //attribute
+                        strcpy(attribute,tempx);
+                    }
+                    tempx = strtok(NULL," ");
+                    index ++;
+                }
+                //printf("%s\n%s\n%d\n%s\n" ,path,position,size,attribute);
+                copystr(path,position,size,attribute);
+            }
+            else {
+                char *diraddress;
+                diraddress = strtok(input," ");
+                int index =1 ;
+                while (diraddress!=NULL) {
+                    if (index==1) {
+                        //address
+                        strcpy(path,diraddress);
+                        //printf("path is :%s\n" ,path);
+                    }
+                    if(index==3) {
+                        //position
+                        strcpy(position,diraddress);
+                        //printf("%s\n" ,position);
+                    }
+                    if (index==5) {
+                        //size
+                        size = atoi(diraddress);
+                        //printf("%d\n" ,size);
+                    }
+                    if (index==6) {
+                        //attribute
+                        strcpy(attribute,diraddress);
+                    }
+                    index ++;
+                    diraddress = strtok(NULL," ");
+                }
+                //printf("%s\t%s\n%d\t%s\n" ,path,position,size,attribute);
+                copystr(path,position,size,attribute);
+            }
         }
+        //cut
         else if (strstr(input, "cutstr --file"))
         {
-            printf("inja bayd cut konm!\n");
+            strremove(input,"cutstr --file ");
+            //printf("%s\n" ,input);
+            char path[MAX];
+            char position[20];
+            char attribute[20];    
+            int line,pos,size;
+            if (*input+0=='"') {
+                char *temp;
+                temp = strtok(input,"\"");
+                strcpy(path,temp);
+                temp = strtok(NULL,"\"");
+                int index =0;
+                char *tempx;
+                tempx = strtok(temp," ");
+                while (tempx!=NULL) {
+                    if (index==1) {
+                        //position
+                        strcpy(position,tempx);
+                    }
+                    else if (index==3){
+                        //size
+                        size = atoi(tempx);
+                    }
+                    else if (index==4){
+                        //attribute
+                        strcpy(attribute,tempx);
+                    }
+                    tempx = strtok(NULL," ");
+                    index ++;
+                }
+                //printf("%s\n%s\n%d\n%s\n" ,path,position,size,attribute);
+                cutstr(path,position,size,attribute);
+            }
+            else {
+                char *diraddress;
+                diraddress = strtok(input," ");
+                int index =1 ;
+                while (diraddress!=NULL) {
+                    if (index==1) {
+                        //address
+                        strcpy(path,diraddress);
+                        //printf("path is :%s\n" ,path);
+                    }
+                    if(index==3) {
+                        //position
+                        strcpy(position,diraddress);
+                        //printf("%s\n" ,position);
+                    }
+                    if (index==5) {
+                        //size
+                        size = atoi(diraddress);
+                        //printf("%d\n" ,size);
+                    }
+                    if (index==6) {
+                        //attribute
+                        strcpy(attribute,diraddress);
+                    }
+                    index ++;
+                    diraddress = strtok(NULL," ");
+                }
+                //printf("%s\t%s\n%d\t%s\n" ,path,position,size,attribute);
+                cutstr(path,position,size,attribute);
+            }
         }
+        //paste
         else if (strstr(input, "pastestr --file"))
         {
             printf("age in oomd bayd paste konm!\n");
@@ -189,10 +365,6 @@ void command_search(char input[])
         else if (strstr(input, "replace --str1"))
         {
             printf("inja commande replace hast!\n");
-        }
-        else if (strstr(input, "grep"))
-        {
-            printf("in ghesmat braye grep krdne!\n");
         }
         else if (strstr(input, "undo --file"))
         {
@@ -207,7 +379,7 @@ void command_search(char input[])
             printf("ddsh commandet invalide bld nisti --help ro bzn!\n");
         }
     }
-    else if (strstr(input, "compare"))
+    else if (strstr(input,"compare"))
     {
         printf("eee compare ham peyda shod!\n");
     }
@@ -266,9 +438,10 @@ void insert(const char *address,const char *text,int line,int position) {
     address = strremove(address,"/root/") ;
     FILE *file;
     FILE *temp;
-    file = fopen(address ,"r");
+    file = fopen(address,"r");
     if (file==NULL) {
         printf("the selected file doesn't exist");
+        printf("%s\n" ,address);
         return;
     }
     char c;
@@ -295,17 +468,13 @@ void insert(const char *address,const char *text,int line,int position) {
             if (current_l==line) {
                 int i=0;
                 do {
-                    c = buffer[i];
-                    printf("%c" ,c);
                     if (i==position) {
                         fputs(text,temp);   
                     }
-                    else if (buffer==' ') {
-                        fputc(' ',temp);
+                    else {fputc(' ',temp);
                     }
-                    else fputc(c,temp);
                     i++;
-                } while(c!='\0');
+                } while(i<=position);
                 keep_reading = false;
             }else{
                 fputs("\n" , temp) ; 
@@ -324,9 +493,17 @@ void insert(const char *address,const char *text,int line,int position) {
                     else fputc(c,temp);
                     i++;
                 } while(c!='\0');
-                keep_reading = false;
+                //inja b bad dige edame matne file rikhte nmishe
+                if (!feof(file)) 
+                    keep_reading = false;
+                else {
+                    printf("aslan inka miyay?\n");
+                    current_l ++;
+                    continue;
+                }
             }else{
                 fputs(buffer , temp) ;  
+                fputc('\n',temp);
             }
         }
         current_l ++ ; 
@@ -415,12 +592,146 @@ void removestr(const char *address,char *position,int size,char*attribute)
     rename(secondpath,temp_a);
 }
 
-void copystr()
+void copystr(const char*address,const char *position,int size,char *attribute)
 {
+    int l;
+    l = strtok(position,":");
+    l = atoi(l);
+    int line = l;
+    l = strtok(NULL,":");
+    l = atoi(l);
+    int pos = l;
+    ////////////////////////////
+    strremove(address,"/root/");
+    FILE *file;
+    file = fopen(address,"r");
+    if (file==NULL) {
+        printf("the selected file doesn't exist!\n");
+        return;
+    }
+    char c;
+    bool keep_reading = true;
+    int current_line = 1;
+    char buffer[MAX];
+    if (strstr(attribute,"-b")) {
+        pos -= size;
+        pos ++;
+    }
+    do {
+        fgets(buffer,MAX,file) ;
+        buffer[strlen(buffer)-1] = '\0';
+        if(current_line == line){
+            int i = 0 ;
+            do {
+                c = buffer[i];
+                if (i==pos) {
+                    for (int j=0;j<size;j++) {
+                        clipboard[j] = buffer[pos];
+                        pos ++ ;
+                    }
+                    keep_reading = false;
+                    break;
+                }
+                i++;
+            } while(c!='\0');
+        }else{
+            current_line ++;
+        }
+    }   while(keep_reading);
+    fclose(file);
+    //printf("clip board is :%s\n" ,clipboard);
 }
 
-void pastestr()
+void cutstr(const char *address,char *position,int size,char *attribute) {
+    int l;
+    l = strtok(position,":");
+    l = atoi(l);
+    int line = l;
+    l = strtok(NULL,":");
+    l = atoi(l);
+    int pos = l;
+    ////////////////////////////
+    strremove(address,"/root/");
+    FILE *file;
+    file = fopen(address,"r");
+    if (file==NULL) {
+        printf("the selected file doesn't exist!\n");
+        return;
+    }
+    char c;
+    bool keep_reading = true;
+    int current_line = 1;
+    char buffer[MAX];
+    if (strstr(attribute,"-b")) {
+        pos -= size;
+        pos ++;
+    }
+    do {
+        fgets(buffer,MAX,file) ;
+        buffer[strlen(buffer)-1] = '\0';
+        if(current_line == line){
+            int i = 0 ;
+            do {
+                c = buffer[i];
+                if (i==pos) {
+                    for (int j=0;j<size;j++) {
+                        clipboard[j] = buffer[pos];
+                        buffer[pos] = '\0';
+                        pos ++ ;
+                    }
+                    keep_reading = false;
+                    break;
+                }
+                i++;
+            } while(c!='\0');
+        }else{
+            current_line ++;
+        }
+    }   while(keep_reading);
+    fclose(file);
+    printf("clip board is :%s\n" ,clipboard);  
+}
+
+void pastestr(const char *address,const char *position,int size,char * attribute)
 {
+    int l;
+    l = strtok(position,":");
+    l = atoi(l);
+    int line = l;
+    l = strtok(NULL,":");
+    l = atoi(l);
+    int pos = l;
+    ////////////////////////////
+    strremove(address,"/root/");
+    FILE *file;
+    FILE *temp;
+    file = fopen(address,"r");
+    if (file==NULL) {
+        printf("the selected file doesn't exist!\n");
+        return;
+    }
+    char c;
+    char nameOFfile[MAX];
+    char temp_a[MAX];
+    strcpy(temp_a,address);
+    findname(address,nameOFfile);
+    char *secondpath = (char*) malloc(sizeof(char) * MAX);
+    raw_address(temp_a,secondpath);
+    strremove(secondpath," ");
+    strcat(secondpath,"temp_");
+    strcat(secondpath,nameOFfile) ;
+    char temp_f[MAX];
+    char buffer[MAX];
+    char *diraddress;
+    temp = fopen(secondpath , "a+");
+    bool keep_reading = true;
+    int current_line = 1;
+    //lopp
+    fclose(file);
+    fclose(temp);
+    remove(temp_a);
+    rename(secondpath,temp_a);   
+
 }
 
 void search()
