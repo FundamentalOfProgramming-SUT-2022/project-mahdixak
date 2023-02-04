@@ -1,3 +1,6 @@
+// ------------MAHDI AKBARI--------------
+// --------------401105601---------------
+
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -19,9 +22,13 @@ void *raw_address(char *path,char *result);
 void create_file(const char *address);
 void insert(const char *address,const char *text,int line,int position);
 void read_file(const char *address);
+void removestr(const char *address,char *position,int size,char*attribute);
 void copystr(const char*address,const char *position,int size,char *attribute) ;
+void cutstr(const char *address,char *position,int size,char *attribute) ;
 void treeshow(int depth) ;
 void listfiles(const char* dirname) ;
+void grep(const char *text,char *addresses,char *attribute);
+
 
 
 
@@ -38,38 +45,59 @@ void command_search(char input[])
 {
     if (strstr(input,"grep")) {
         strremove(input,"grep ");
-        printf("%s\n" ,input);
         char option[20];
         char text[MAX];
         char projects[MAX];
-        if (*input+0=='-') {
+        char alaki[MAX];
+        char *tempx = (char *)malloc(sizeof(char)*MAX);
+        strcpy(alaki,input);
+        char *temp = (char *)malloc(sizeof(char)*MAX);
+        temp = strtok(alaki," ");
+        if (strstr(temp,"-c")||strstr(temp,"-l")) {
             //with option
-            char *temp;
-            temp = strtok(input," ");
-            int index = 0;
-            while (index!=3) {
-                if (index==0) {
-                    //option
-                    strcpy(option,temp);
-                }
-                else if (index==2) {
-                    //text
-                    strcpy(text,temp);
-                }
-                index ++;
-                temp = strtok(NULL," ");
-            }
+            strcpy(option,temp);
+            temp = strtok(NULL," ");
+            temp = strtok(NULL," ");
+            strcpy(text,temp);
+            temp = strtok(NULL," ");
+            temp = strtok(NULL," ");
             strcpy(projects,temp);
-            while (temp!=NULL)
-            {
-                temp = strtok(NULL," ");
-                strcat(projects,temp);
+            strcat(projects," ");
+            tempx = strtok(input," ");
+            for (int i=0;i<4;i++) {
+                tempx = strtok(NULL," ");
             }
-            printf("%s\n%s\n%s\n" ,option,text,projects);
+            while (tempx!=NULL)
+            {
+                strcat(projects,tempx);
+                strcat(projects," ");
+                tempx = strtok(NULL," ");
+            }
+            //printf("%s\n" ,projects);
+            grep(text,projects,option);
         }
-//        else {
-//
-//        }
+        else {
+            temp = strtok(NULL," ");
+            strcpy(text,temp);
+            //printf("%s\n" ,text);
+            temp = strtok(NULL," ");
+            temp = strtok(NULL," ");
+            strcpy(projects,temp);
+            strcat(projects," ");
+            tempx = strtok(input," ");
+            for (int i=0;i<4;i++) {
+                tempx = strtok(NULL," ");
+            }
+            while (tempx!=NULL)
+            {
+                strcat(projects,tempx);
+                strcat(projects," ");
+                tempx = strtok(NULL," ");
+            }
+            //printf("%s\n" ,projects);
+            strcpy(option,"0");
+            grep(text,projects,option);            
+        }  
     }
     else if (strstr(input,"--file"))
     {
@@ -124,7 +152,7 @@ void command_search(char input[])
                     }
                     if(index==5) {
                         //position
-                        int l;
+                        char l;
                         l = strtok(diraddress,":");
                         l = atoi(l);
                         line = l;
@@ -405,7 +433,35 @@ void command_search(char input[])
         //find
         else if (strstr(input, "find --str"))
         {
-            printf("inja bayd find kone!\n");
+            strremove(input,"find --str");
+            char text[MAX];
+            char address[MAX];
+            char attribute[MAX];
+            char alaki[MAX];
+            strcpy(alaki,input);
+            char *temp = (char *)malloc(sizeof(char)*MAX);
+            char *tempx = (char *)malloc(sizeof(char)*MAX);
+            if (*input+0=='"') {
+                //double quotation
+                printf("double  quotation\n");
+            }
+            else {
+                temp = strtok(input," ");
+                strcpy(text,temp);
+                strcpy(tempx,temp);
+                strcat(tempx," ");
+                temp = strtok(NULL," ");
+                strcat(tempx,temp);
+                strcat(tempx," ");
+                temp = strtok(NULL," ");
+                strcat(tempx,temp);
+                strcat(tempx," ");
+                strcpy(address,temp);
+                //strcat(tempx," ");
+                strremove(alaki,tempx);
+                strcpy(attribute,alaki);
+                search(address,text,attribute);
+            }
         }
         //replace
         else if (strstr(input, "replace --str1"))
@@ -821,16 +877,147 @@ void pastestr(const char *address,const char *position)
 
 }
 
-void search()
+void search(const char *find,const char *text,char *attribute)
 {
+    if (strstr(attribute,"-at")&&strstr(attribute,"all")) {
+        printf("It can't be possible dude!\n");
+        return ;
+    }
+    bool count = false;
+    bool at = false ;
+    int num=0;
+    bool byword = false ;
+    bool all = false ;
+    bool wildcard = false;
+    char *temp = (char *)malloc(sizeof(char)*MAX);
+    temp = strtok(attribute," ");
+    while (temp!=NULL) {
+        if (strstr(temp,"-at")) {
+            at = true;
+            temp = strtok(NULL," ");
+            num = atoi(temp);
+        }
+        else if (strstr(temp,"count")) {
+            count = true ;
+        }
+        else if (strstr(temp,"byword")) {
+            byword = true;
+
+
+        }
+        else if (strstr(temp,"all")) {
+            all = true;
+
+        }
+        printf("%s\n" ,temp);
+        temp = strtok(NULL," ");
+    }
+    if (byword) {
+
+    }
+    else {
+
+    }
+
 }
 
 void undo()
 {
 }
 
-void grep()
+void grep(const char *text,char *addresses,char *attribute)
 {
+    FILE *file;
+    char buffer[MAX];
+    char result[MAX][MAX];
+    char l[MAX][MAX];
+    int c = 0;
+    int print = 0;
+    bool _c = false;
+    bool _l = false;
+    if (strstr(attribute,"-c")) {
+        _c = true ;
+        print = 1;
+    }
+    else if (strstr(attribute,"-l")) {
+        _l = true;
+        print = 2;
+    }
+    char *temp = (char *)malloc(sizeof(char)*MAX) ;
+    temp = strtok(addresses," ");
+    file = fopen(temp, "r") ;
+    if (file==NULL) {
+        printf("ERROR while opening file(s).\n");
+        return;
+    }
+    bool keep_reading = true;
+    int co = 0,cs =0;
+    while (keep_reading==true) {
+        fgets(buffer,MAX,file);
+        //printf("buffer is :%s" ,buffer);
+        if (strstr(buffer,text)) {
+            strcpy(result[co],temp);
+            strcat(result[co],": ");
+            strcat(result[co],buffer);
+            //printf("%s" ,result[co]);
+            co ++;
+            c++;
+            strcpy(l[cs],temp);
+            cs ++;
+            //keep_reading = false;
+        }
+        if (feof(file)) keep_reading = false ;
+    }
+    fclose(file);
+    keep_reading = true;
+    while (temp!=NULL) {
+        temp = strtok(NULL," ");
+        temp = strtok(NULL," ");
+        file = fopen(temp,"r");
+        if (file==NULL) {
+            //printf("ERROR while opening file(s).\n");
+            break;
+        }
+        while (keep_reading==true) {
+            fgets(buffer,MAX,file);
+            if (strstr(buffer,text)) {
+                strcpy(result[co],temp);
+                strcat(result[co],": ");
+                strcat(result[co],buffer);
+                //printf("%s" ,result[co]);
+                co ++;
+                c++;
+                strcpy(l[cs],temp);
+                cs ++;
+                //keep_reading = false;
+            }
+            if (feof(file)) keep_reading = false ;
+        }
+        fclose(file);
+    }
+    if (print==0) {
+        //printe mamooli
+        for (int j=0;j<co;j++) {
+            printf("%s" ,result[j]);
+        }
+    }
+    else if (print==1) {
+        //printe -c
+        printf("%d\n" ,c);
+    }
+    else if (print==2) {
+        //printe -l
+        int a=1;
+        for (int i=1;i<cs;i++) {
+            if (a==1) {
+                printf("%s\n" ,l[0]);
+                a++ ;
+            }
+            if (strcmp(l[i],l[i-1])!=0) {
+                printf("%s\n" ,l[i]);
+            }
+        }
+    }
 }
 
 void comprator(char *path1,char *path2) {
