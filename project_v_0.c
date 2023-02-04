@@ -164,7 +164,7 @@ void command_search(char input[])
             printf("%s\n" ,input);
             char path[MAX];
             char position[20];
-            char *attribute;    
+            char attribute[20];    
             int line,pos,size;
             if (*input+0=='"') {
                 char *temp;
@@ -200,18 +200,22 @@ void command_search(char input[])
                     if (index==1) {
                     //address
                     strcpy(path,diraddress);
+                    //printf("%s" ,path);
                     }
                     if(index==3) {
                     //position
                         strcpy(position,diraddress);
+                        //printf("%s\n" ,position);
                     }
                     if (index==5) {
                         //size
                         size = atoi(diraddress);
+                        //printf("%d\n" ,size);
                     }
                     if (index==6) {
                         //attribute
                         strcpy(attribute,diraddress);
+                        //printf("%s\n" ,attribute);
                     }
                     index ++;
                     diraddress = strtok(NULL," ");
@@ -494,57 +498,52 @@ void insert(const char *address,const char *text,int line,int position) {
     strcat(secondpath,nameOFfile) ;
     char temp_f[MAX];
     char buffer[MAX];
+    char newline[MAX]={0};
     char *diraddress;
     temp = fopen(secondpath , "a+");
     bool keep_reading = true ;
     int current_l = 1;
-    do {
-        fgets(buffer,MAX,file) ;
-        buffer[strlen(buffer)-1] = '\0';
-        if (feof(file)) {    
-            if (current_l==line) {
-                int i=0;
-                do {
-                    if (i==position) {
-                        fputs(text,temp);   
-                    }
-                    else {fputc(' ',temp);
-                    }
-                    i++;
-                } while(i<=position);
-                keep_reading = false;
-            }else{
-                fputs("\n" , temp) ; 
+    while(keep_reading == true){
+        fgets(buffer , MAX ,file) ;
+        if(feof(file)){
+            if(current_l < line ) {
+                fputs("\n" , temp ) ;
+                }
+            if(current_l == line){
+                for(int i = 0 ; i < position ; i ++ ) newline[i] = ' ' ; 
+                strcat(newline , text ) ; 
+                fputs(newline , temp) ; 
+                keep_reading = false ;
             }
+            if(current_l > line ){
+                fputs(buffer,temp);
+                keep_reading = false ; 
+            } 
         }else{
             if(current_l == line){
-                int i = 0 ;
-                do {
-                    c = buffer[i];
-                    if (i==position) {
-                        fputs(text,temp);   
+                if(position > strlen(buffer) - 1 ){
+                    buffer[strlen(buffer) - 1 ] = buffer[strlen(buffer)] ; 
+                    strcpy(newline , buffer) ; 
+                    for(int i = 0 ; i < position - strlen(buffer)   ; i ++ ) strcat(newline , " ")  ; 
+                    strcat(newline , text) ; 
+                    strcat(newline , "\n") ; 
+                    fputs(newline , temp) ; 
+               }else{
+                    memcpy(newline  , buffer , position) ; 
+                    strcat(newline , text) ;  
+                    int temp_size = strlen(newline) ;  
+                    for(int i  = 0 ; i+position < strlen(buffer) ; i++){
+                        newline[temp_size + i] = buffer[i + position] ; 
                     }
-                    else if (buffer==' ') {
-                        fputc(' ',temp);
-                    }
-                    else fputc(c,temp);
-                    i++;
-                } while(c!='\0');
-                //inja b bad dige edame matne file rikhte nmishe
-                if (!feof(file)) 
-                    keep_reading = false;
-                else {
-                    printf("aslan inka miyay?\n");
-                    current_l ++;
-                    continue;
-                }
+                    fputs(newline , temp) ; 
+               }
             }else{
-                fputs(buffer , temp) ;  
-                fputc('\n',temp);
+                if(buffer[strlen(buffer) - 1] != '\n') strcat(buffer, "\n") ; 
+                fputs(buffer, temp) ; 
             }
         }
         current_l ++ ; 
-    }   while(keep_reading);
+   }
     fclose(file);
     fclose(temp);
     remove(temp_a);
@@ -598,48 +597,42 @@ void removestr(const char *address,char *position,int size,char*attribute)
     strcat(secondpath,nameOFfile) ;
     char temp_f[MAX];
     char buffer[MAX];
+    char newline[MAX] ={0};
     char *diraddress;
     temp = fopen(secondpath , "a+");
+    if (temp==NULL) printf("EROR\n");
     bool keep_reading = true ;
     int current_l = 1;
     if (strstr(attribute,"-b")) {
         pos -= size;
-        pos ++;
+        //pos ++;
     }
-    do {
-        fgets(buffer,MAX,file) ;
-        buffer[strlen(buffer)-1] = '\0';        
-        if(current_l == line){
-            int i = 0 ;
-            do {
-                c = buffer[i];
-                if (i==pos) {
-                    for (int j=0;j<size;j++) {
-                      //clipboard[j] = buffer[pos];
-                      //pos++;
-                      i++;
-                    }
-                    //printf("clip board is:%s\n" ,clipboard);
+    while(keep_reading == true){
+        fgets(buffer , MAX ,file) ;
+        if (feof(file)) keep_reading = false ;
+        else {
+            if(current_l == line){
+                memcpy(newline  , buffer , pos) ;   
+                int temp_size = strlen(newline) ;  
+                for(int i  = 0 ; i < size ; i++){
+                    newline[temp_size + i] = NULL ; 
+                    //for clip board
                 }
-                else if (buffer==' ') {
-                    fputc(' ',temp);
+                //printf("buffer is :%s\n" ,buffer);
+                int x = pos;
+                for (int j=2*pos-1;j<strlen(buffer);j++) {
+                    newline[x] = buffer[j];
+                    x ++;
                 }
-                else fputc(c,temp);
-                i++;
-            } while(c!='\0');
-            //inja b bad dige edame matne file rikhte nmishe
-            if (!feof(file)) 
-                keep_reading = false;
-            else {
-                printf("aslan inka miyay?\n");
-                current_l ++;
+                fputs(newline , temp) ; 
+                //fputc('\n' ,temp);
+            }else{
+                if(buffer[strlen(buffer) - 1] != '\n') strcat(buffer, "\n") ; 
+                fputs(buffer, temp) ; 
             }
-        }else{
-            fputs(buffer , temp) ;  
-            fputc('\n',temp);
-        }
             current_l ++ ; 
-    }   while(keep_reading);
+        }
+    }
     fclose(file);
     fclose(temp);
     remove(temp_a);
@@ -648,6 +641,9 @@ void removestr(const char *address,char *position,int size,char*attribute)
 
 void copystr(const char*address,const char *position,int size,char *attribute)
 {
+    for (int i=0;i<strlen(clipboard);i++) {
+        clipboard[i] = '\0';
+    }    
     int l;
     l = strtok(position,":");
     l = atoi(l);
@@ -697,8 +693,8 @@ void copystr(const char*address,const char *position,int size,char *attribute)
 }
 
 void cutstr(const char *address,char *position,int size,char *attribute) {
-    for (int a=0;a<strlen(clipboard);a++) {
-        clipboard[a] = '\0';
+    for (int i=0;i<strlen(clipboard);i++) {
+        clipboard[i] = '\0';
     }
     int l;
     l = strtok(position,":");
@@ -728,52 +724,48 @@ void cutstr(const char *address,char *position,int size,char *attribute) {
     strcat(secondpath,nameOFfile) ;
     char temp_f[MAX];
     char buffer[MAX];
+    char newline[MAX] ={0};
     char *diraddress;
     temp = fopen(secondpath , "a+");
+    if (temp==NULL) printf("EROR\n");
     bool keep_reading = true ;
     int current_l = 1;
     if (strstr(attribute,"-b")) {
         pos -= size;
-        pos ++;
+        //pos ++;
     }
-    do {
-        fgets(buffer,MAX,file) ;
-        buffer[strlen(buffer)-1] = '\0';        
-        if(current_l == line){
-            int i = 0 ;
-            do {
-                c = buffer[i];
-                if (i==pos) {
-                    for (int j=0;j<size;j++) {
-                      clipboard[j] = buffer[pos];
-                      pos++;
-                      i++;
-                    }
+    while(keep_reading == true){
+        fgets(buffer , MAX ,file) ;
+        if (feof(file)) keep_reading = false ;
+        else {
+            if(current_l == line){
+                memcpy(newline  , buffer , pos) ;   
+                int temp_size = strlen(newline) ;  
+                for(int i  = 0 ; i < size ; i++){
+                    newline[temp_size + i] = NULL ; 
+                    //for clip board
+                    clipboard[i] = buffer[temp_size+i];
                 }
-                else if (buffer==' ') {
-                    fputc(' ',temp);
+                //printf("buffer is :%s\n" ,buffer);
+                int x = pos;
+                for (int j=2*pos-1;j<strlen(buffer);j++) {
+                    newline[x] = buffer[j];
+                    x ++;
                 }
-                else fputc(c,temp);
-                i++;
-            } while(c!='\0');
-            //inja b bad dige edame matne file rikhte nmishe
-            if (!feof(file)) 
-                keep_reading = false;
-            else {
-                printf("aslan inka miyay?\n");
-                current_l ++;
+                fputs(newline , temp) ; 
+                //fputc('\n' ,temp);
+            }else{
+                if(buffer[strlen(buffer) - 1] != '\n') strcat(buffer, "\n") ; 
+                fputs(buffer, temp) ; 
             }
-        }else{
-            fputs(buffer , temp) ;  
-            fputc('\n',temp);
-        }
             current_l ++ ; 
-    }   while(keep_reading);
+        }
+    }
     fclose(file);
     fclose(temp);
     remove(temp_a);
-    rename(secondpath,temp_a);  
-    //printf("clip board is:%s\n" ,clipboard);
+    rename(secondpath,temp_a);
+    printf("clip board is :%s\n" ,clipboard);
 }
 
 void pastestr(const char *address,const char *position)
