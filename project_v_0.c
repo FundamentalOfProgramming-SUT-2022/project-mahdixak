@@ -409,7 +409,7 @@ void command_search(char input[])
                     index ++;
                 }                
                 //printf("%s\t%s\n" ,address,position);
-                //pastestr(address,position);
+                pastestr(address,position);
             }
             else {
                 temp = strtok(input," ");
@@ -427,7 +427,7 @@ void command_search(char input[])
                     index++;
                 }
                 //printf("%s\t%s\n" ,address,position);
-                //pastestr(address,position);
+                pastestr(address,position);
             }
         }
         //find
@@ -468,13 +468,15 @@ void command_search(char input[])
         {
             printf("inja commande replace hast!\n");
         }
+        //undo 
         else if (strstr(input, "undo --file"))
         {
             printf("age in oomd bayd undo konim");
         }
+        //invalid command
         else
         {
-            printf("ddsh commandet invalide bld nisti --help ro bzn!\n");
+            printf("Oops! you enter INVALID command!\n");
         }
     }
     else if (strstr(input,"compare"))
@@ -492,21 +494,24 @@ void command_search(char input[])
             comprator(dir1,dir2);
         }
     }
+    //tree
     else if (strstr(input,"tree")) {
         strremove(input,"tree");
         int a;
         a = atoi(input);
         treeshow(a);
     }
+    //closing pair
     else if (strstr(input, "auto-indent"))  
     {
         strremove(input,"auto-indent");
         strremove(input,"/root/");
         closingpair(input);
     }
+    //invalid command
     else
     {
-        printf("Ooops! you enter an invalid command\n");
+        printf("Ooops! you enter INVALID command\n");
     }
 }
 
@@ -845,12 +850,12 @@ void pastestr(const char *address,const char *position)
     l = atoi(l);
     int pos = l;
     ////////////////////////////
-    strremove(address,"/root/");
     FILE *file;
     FILE *temp;
-    file = fopen(address,"r");
+    strremove(address,"/root/");
+    file = fopen(address , "r");
     if (file==NULL) {
-        printf("the selected file doesn't exist!\n");
+        printf("the selected file doesn't exist");
         return;
     }
     char c;
@@ -865,16 +870,38 @@ void pastestr(const char *address,const char *position)
     strcat(secondpath,nameOFfile) ;
     char temp_f[MAX];
     char buffer[MAX];
+    char newline[MAX] ={0};
     char *diraddress;
     temp = fopen(secondpath , "a+");
-    bool keep_reading = true;
-    int current_line = 1;
-    //lopp
+    if (temp==NULL) printf("EROR\n");
+    bool keep_reading = true ;
+    int current_l = 1;
+    while(keep_reading == true){
+        fgets(buffer , MAX ,file) ;
+        if (feof(file)) keep_reading = false ;
+        else {
+            if(current_l == line){
+                memcpy(newline  , buffer , pos) ;   
+                int temp_size = strlen(newline) ;  
+                strcat(newline,clipboard);
+                //printf("buffer is :%s\n" ,buffer);
+                for (int a=strlen(newline);a<strlen(buffer);a++) {
+                    newline[a] = buffer[pos];
+                    pos ++;
+                }
+                fputs(newline , temp) ; 
+                //fputc('\n' ,temp);
+            }else{
+                if(buffer[strlen(buffer) - 1] != '\n') strcat(buffer, "\n") ; 
+                fputs(buffer, temp) ; 
+            }
+            current_l ++ ; 
+        }
+    }
     fclose(file);
     fclose(temp);
     remove(temp_a);
-    rename(secondpath,temp_a);   
-
+    rename(secondpath,temp_a);
 }
 
 void search(const char *find,const char *text,char *attribute)
@@ -1296,10 +1323,10 @@ void closingpair(char *address) {
 
 int main()
 {   
-    //while (true) {
+    while (true) {
         inputs(input);
         command_search(input);
-    //}
+    }
     return 0;
 }
 
