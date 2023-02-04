@@ -423,7 +423,18 @@ void command_search(char input[])
     }
     else if (strstr(input,"compare"))
     {
-        printf("eee compare ham peyda shod!\n");
+        strremove(input,"compare ");
+        char *dir1;
+        char *dir2;
+        if (*input+0=='"') {
+            //double quotatoin
+        }
+        else {
+            dir1 = strtok(input," ");
+            dir2 = strtok(NULL," ");
+            printf("%s %s\n" ,dir1,dir2);
+            comprator(dir1,dir2);
+        }
     }
     else if (strstr(input,"tree")) {
         strremove(input,"tree");
@@ -825,7 +836,7 @@ void grep()
 void comprator(char *path1,char *path2) {
     FILE *file1;
     FILE *file2;
-    file1 = fopen(path1 , "r");
+    file1 = fopen(path1 ,"r");
     file2 = fopen(path2 ,"r");
     if (file1==NULL||file2==NULL) {
         printf("Error while reading files\n");
@@ -833,13 +844,15 @@ void comprator(char *path1,char *path2) {
     }
     bool reading_status = true;
     int current_line=1;
-    int show_line=1;
+    int show_line = 1;
+    int show_line2 = 1;
     char buffer1[MAX];
     char buffer2[MAX];
     int v1=1,v2=1,end =1,co = 0;
-    char first;
-    char second;
+    char first[MAX];
+    char second[MAX];
     char temp[MAX][MAX];
+    int val =1 ;
     do {
         fgets(buffer1,MAX,file1);
         fgets(buffer2,MAX,file2);
@@ -862,38 +875,53 @@ void comprator(char *path1,char *path2) {
             }
         }
         if (strcmp(buffer1,buffer2)!=0) {
-            show_line = current_line;
-            strcpy(first,buffer1);
-            strcpy(second,buffer2);
+            show_line2 = current_line;
+            if (val==1) {
+                show_line = current_line;
+                strcpy(first,buffer1);
+                strcpy(second,buffer2);
+                val ++;
+            }
         }
         current_line ++;
     } while(reading_status);
     printf("==================== #%d ====================\n" ,show_line);
-    printf("file1 is : %s\n" ,first);
-    printf("file2 is : %s\n" ,second);
-    if (end = 1) {
-        printf(">>>>>>>>>>>>>>>>>>>> #%d >>>>>>>>>>>>>>>>>>>>\n" ,show_line+1);
-        for (int i=0;i<current_line;i++) {
-            printf("%s\n" ,temp[i]);
-        }
-    }
+    printf("file1 is : %s" ,first);
+    printf("file2 is : %s" ,second);
     fclose(file1);
     fclose(file2);
 
     reading_status = true ;
-    file1 = fopen(path1 , "r");
+    file1 = fopen(path1 ,"r");
     file2 = fopen(path2 ,"r");
     current_line = 1;
+    if (end = 1) {
+        printf(">>>>>>>>>>>>>>>>> #%d  -  #%d >>>>>>>>>>>>>>>>>\n" ,show_line2,show_line2);
+    }
     do {
-        if (v1!=0) {
-            fgets(buffer1,MAX,file1);
-            if (current_line>show_line) {
-                //print the file 1 after ending file 2
+        fgets(buffer1,MAX,file1);
+        fgets(buffer2,MAX,file2);
+        if (strcmp(buffer1,buffer2)!=0) {
+            if (v1!=0) {
+                if (feof(file1)) reading_status = false ;
+                if (current_line>=show_line2) {
+                    if (*(buffer1+0)=='\n'||*(buffer1+0)==' ') {
+                    }   
+                    else 
+                        printf("%s" ,buffer1);
+                }
+            }
+            else if (v2!=0) {
+                if (feof(file2)) reading_status = false ;
+                if (current_line>=show_line2) {
+                if (*(buffer2+0)=='\n'||*(buffer2+0)==' ') {
+                }   
+                else 
+                    printf("%s" ,buffer2);
+                }
             }
         }
-        else if (v2!=0) {
-
-        }
+        else show_line++;
         current_line ++;
     }   while (reading_status);
     fclose(file1);
@@ -968,8 +996,9 @@ void treeshow(int depth)
     closedir(dir);
 }
 
-void pipe()
+void arman()
 {
+    printf("arman o tahrim krdm XD!\n");
 }
 
 void closingpair(char *address) {
